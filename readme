@@ -1,0 +1,106 @@
+python3 -m venv venv
+source venv/bin/activate
+uvicorn main:app --reload --port 8000
+
+
+1. Add "Buy groceries" to my to-do list.
+2. Remind me to call mom.
+3. I need to schedule a dentist appointment.
+4. Can you add "Finish the project report" to my tasks?
+5. Please add: Water the plants.
+
+
+1. Remove "Buy groceries" from my to-do list.
+2. Delete the task to call mom.
+3. Clear the dentist appointment task.
+
+
+uvicorn main:app --reload --port 8000
+
+{
+  "task": "chat",
+  "input": "What's my recent calendar schedule?",
+  "user_id": 1
+}
+
++--------------------------+              +------------------------+
+|       Frontend UI        |              |     Swagger Docs       |
+|  (Streamlit / Web App)   |<--CORS API-->|   (FastAPI + OpenAPI)  |
++-----------+--------------+              +-----------+------------+
+            |                                       |
+            | REST API / JSON payload               |
+            v                                       v
++-----------+-------------------------------+   +---+-----------------------------+
+|               FastAPI Server              |   |         LangFlow UI            |
+|   (main.py: /chat, /news, /interest etc.) |   |  (Optional visual agent flow)  |
++-----------+-------------------------------+   +--------------------------------+
+            |
+            | calls
+            v
++-----------+----------------------------+
+|          LangGraph Flow Builder        |
+|  (langgraph_flow.py → build_langgraph) |
++-----------+----------------------------+
+            |
+            | task-based routing
+            v
++-----------+----------------------------+
+|      Multi-Agent Orchestrator          |
+|  (Chat, Calendar, News, Transactions…) |
++-----------+----------------------------+
+            |
+            | async calls to agents
+            v
+    +------------+   +----------------+   +-------------------+   +-------------------+
+    | ChatAgent  |   | NewsAgent      |   | ToDoAgent         |   | CalendarAgent     |
+    | (ChatGroq) |   | + NewsAPI +    |   | + Task Storage     |   | + Reminders API   |
+    +------------+   | + LLM Summary  |   +-------------------+   +-------------------+
+                     |
+                     | Personalized using:
+                     v
+            +----------------------------+
+            | InterestClassifierAgent    |
+            |  - Tracks hot/cold topics  |
+            |  - Uses user input history |
+            +----------------------------+
+
+                     |
+                     v
+           +-----------------------------+
+           |   UserInterest DB Handler   |
+           |  (SQLite or MongoDB)        |
+           +-----------------------------+
+
+            |
+            | Transactional / semantic memory
+            v
++-------------------------------+
+|  Embeddings & Chroma VectorDB|
+|  (for vector RAG & search)   |
++-------------------------------+
+
+
+gen-ai-agent/
+├── cli/
+│   └── main.py               # CLI runner (optional)
+├── server.py                 # FastAPI app with Swagger
+├── main.py                   # FastAPI route handler
+├── orchestrator/
+│   ├── langgraph_flow.py     # Builds the LangGraph flow
+│   ├── agents/
+│   │   ├── chat_agent.py
+│   │   ├── news_agent.py
+│   │   ├── todo_agent.py
+│   │   ├── calendar_agent.py
+│   │   └── interest_agent.py
+├── db/
+│   ├── interest_db.py        # DB functions: save, fetch, update
+│   └── setup.py              # Initializes DB
+├── vector_store/
+│   └── chroma_client.py      # Chroma integration
+├── llm/
+│   └── groq_client.py        # ChatGroq LLaMA3 wrapper
+├── utils/
+│   └── summarizer.py         # LLM summarizer for news
+├── .env
+├── requirements.txt
